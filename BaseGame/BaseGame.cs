@@ -217,7 +217,7 @@ namespace Carcassonne
         }
         public static GameEngine CreateBaseGame(IExternalDataSource datasource, ulong seed, int players, string tileset)
         {
-            Assert(seed != 0, "Invalid seed - some random generators might not like it");
+            Assert(seed != 0, "Invalid seed - some random number generators might not like it");
             Assert(players > 1);
             Assert(tileset != null);
 
