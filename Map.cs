@@ -169,7 +169,7 @@ namespace Carcassonne
                     }
                 }
             }
-            return ret;
+            return ret.Distinct().ToList();
         }
         void Update()
         {
