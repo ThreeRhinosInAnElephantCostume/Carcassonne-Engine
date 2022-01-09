@@ -45,7 +45,7 @@ namespace Carcassonne
         public override int Weight => 1;
         public override bool IsInPlay => CurrentRole != Role.NONE;
         public object _place = null;
-        static Role MatchRole(NodeType nt)
+        public static Role MatchRole(NodeType nt)
         {
             Assert(nt != NodeType.ERR);
 
@@ -61,7 +61,7 @@ namespace Carcassonne
                     throw new Exception("Invalid/unaccounted for NodeType!");
             }
         }
-        static Role MatchRole(TileAttributeType attr)
+        public static Role MatchRole(TileAttributeType attr)
         {
             Assert(attr == TileAttributeType.MONASTERY);
             return Role.MONK;
