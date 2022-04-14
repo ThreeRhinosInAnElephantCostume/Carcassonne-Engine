@@ -1,4 +1,6 @@
-﻿/*
+﻿using System.Net;
+using System.ComponentModel;
+/*
     *** Meeple.cs ***
 
     The Meeple and Occupier classes.
@@ -21,9 +23,32 @@ using static Utils;
 
 namespace Carcassonne
 {
+
+    public class OccupierContainer
+    {
+        public List<Occupier> Occupiers {get; protected set;} = new List<Occupier>();
+        public void AddOccupier(Occupier occ)
+        {
+            Occupiers.Add(occ);
+        }
+        public void RemoveOccupier(Occupier occ)
+        {
+            Occupiers.Remove(occ);
+        }
+    }
     public abstract class Occupier : Pawn
     {
         public abstract int Weight { get; }
+        public virtual void Place(Tile tile, OccupierContainer container)
+        {
+            Assert(!container.Occupiers.Contains(this));
+            container.AddOccupier(this);
+        }
+        public virtual void Remove(OccupierContainer container)
+        {
+            Assert(container.Occupiers.Contains(this));
+            container.RemoveOccupier(this);
+        }
 
         public Occupier(Player player)
         {
@@ -35,16 +60,16 @@ namespace Carcassonne
     {
         public enum Role
         {
-            NONE,
-            FARMER,
-            KNIGHT,
-            HIGHWAYMAN,
-            MONK
+            NONE=0,
+            FARMER=1,
+            KNIGHT=2,
+            HIGHWAYMAN=3,
+            MONK=4
         }
         public Role CurrentRole { get; set; } = Role.NONE;
         public override int Weight => 1;
         public override bool IsInPlay => CurrentRole != Role.NONE;
-        public object _place = null;
+        public OccupierContainer Container = null;
         public static Role MatchRole(NodeType nt)
         {
             Assert(nt != NodeType.ERR);
@@ -68,13 +93,13 @@ namespace Carcassonne
         }
         public bool IsConnectedToNode(InternalNode node)
         {
-            return _place == node;
+            return Container == node;
         }
         public bool IsConnectedToAttribute(Tile.TileAttribute attr)
         {
-            return _place == attr;
+            return Container == attr;
         }
-        public void Place(InternalNode node)
+        void Place(InternalNode node)
         {
             Assert(node != null);
             Assert(node.Type != NodeType.ERR);
@@ -82,9 +107,9 @@ namespace Carcassonne
             node.Graph.Owners.Add(this);
             this.CurrentTile = node.ParentTile;
             this.CurrentRole = MatchRole(node.Type);
-            _place = node;
+            Container = node;
         }
-        public void Place(Tile tile, Tile.TileAttribute attr)
+        void Place(Tile tile, Tile.TileAttribute attr)
         {
             Assert(tile != null);
             Assert(tile.Attributes.Contains(attr));
@@ -95,7 +120,19 @@ namespace Carcassonne
             mon.Owner = this;
             this.CurrentTile = tile;
             this.CurrentRole = MatchRole(attr.Type);
-            _place = mon;
+            Container = mon;
+        }
+        public override void Place(Tile tile, OccupierContainer container)
+        {
+            if(container is Tile.TileAttribute attr)
+            {
+                Place(tile, attr);
+            }
+            else if(container is InternalNode node)
+            {
+                Place(node);
+            }
+            base.Place(tile, container);
         }
         public void Remove()
         {
@@ -103,15 +140,16 @@ namespace Carcassonne
 
             if (CurrentRole == Role.MONK)
             {
-                var mon = (TileMonasteryAttribute)_place;
+                var mon = (TileMonasteryAttribute)Container;
                 mon.Owner = null;
             }
             else
             {
-                var node = (InternalNode)_place;
+                var node = (InternalNode)Container;
                 node.Graph.Owners.Remove(this);
             }
             CurrentRole = Role.NONE;
+            base.Remove(this.Container);
         }
         public Meeple(Player player) : base(player)
         {

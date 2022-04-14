@@ -25,7 +25,7 @@ using static Utils;
 
 namespace Carcassonne
 {
-    public class InternalNode
+    public class InternalNode : OccupierContainer
     {
         // Extensibility required for potential expansions
         public class InternalNodeAttribute

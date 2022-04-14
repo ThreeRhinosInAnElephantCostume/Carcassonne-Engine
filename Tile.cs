@@ -38,7 +38,7 @@ namespace Carcassonne
     public class Tile
     {
         ///<summary>A representation of a tile-wide attribute, like a monastery</summary>
-        public class TileAttribute
+        public class TileAttribute : OccupierContainer
         {
             public Tile tile { get; protected set; }
             public TileAttributeType Type { get; protected set; }

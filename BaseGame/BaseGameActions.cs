@@ -154,7 +154,7 @@ namespace Carcassonne
                 AssertRule(GetPossibleMeeplePlacements(CurrentPlayer, _lastTile).Contains(node),
                     "Attempted to place a meeple on a nonexistent node");
 
-                meeple.Place(node);
+                meeple.Place(node.ParentTile, node);
             }
 
 
