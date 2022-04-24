@@ -56,9 +56,9 @@ namespace Carcassonne
             }
             map.PlaceTile(c, act.pos);
 
+            UpdatePoints();
             if (GetPossibleMeeplePlacements(CurrentPlayer, c).Count == 0)
             {
-                UpdatePoints();
                 if (!NextTileEnsurePlaceable())
                 {
                     EndGame();
