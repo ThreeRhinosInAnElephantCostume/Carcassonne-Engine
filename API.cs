@@ -73,6 +73,22 @@ namespace Carcassonne
             ExecuteAction(act);
         }
         ///<summary>
+        /// Places one of CurrentPlayers free meeples on CurrentTile's attribute/node specified by `index`
+        /// Following this, one of the following things will happen:
+        /// 0. CurrentState will switch to State.PLACE_TILE and CurrentPlayer will change.
+        /// 1. If there are no tiles left to place, CurrentState will change to State.GAME_OVER.
+        ///</summary>
+        public void PlacePawn(bool isAttribute, int index)
+        {
+            AssertState(State.PLACE_PAWN);
+            if (isAttribute)
+                PlacePawnOnAttribute(index);
+            else
+                PlacePawnOnNode(index);
+            var act = new PlacePawnAction(index, true);
+            ExecuteAction(act);
+        }
+        ///<summary>
         /// Places one of CurrentPlayers free meeples on CurrentTile's attribute specified by `index`
         /// Following this, one of the following things will happen:
         /// 0. CurrentState will switch to State.PLACE_TILE and CurrentPlayer will change.
@@ -112,6 +128,18 @@ namespace Carcassonne
 
             return map.TryFindAllFits(_tileManager.CurrentTile());
         }
+        ///<summary>Returns a combined list of valid values for PlacePawnOnNode and PlacePawnOnAttribute.</summary>
+        public List<(bool isattribute, int indx)> AllPossibleMeeplePlacements()
+        {
+            var attributes = PossibleMeepleAttributePlacements();
+            var nodes = PossibleMeepleNodePlacements();
+            List<(bool isattribute, int indx)> meeple_placements = new List<(bool isattribute, int indx)>();
+            attributes.ForEach(it => meeple_placements.Add((true, it)));
+            nodes.ForEach(it => meeple_placements.Add((false, it)));
+
+            return meeple_placements;
+        }
+
         ///<summary>Returns a list of valid values for PlacePawnOnNode.</summary>
         public List<int> PossibleMeepleNodePlacements()
         {
