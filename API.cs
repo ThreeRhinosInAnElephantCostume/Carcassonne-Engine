@@ -85,8 +85,6 @@ namespace Carcassonne
                 PlacePawnOnAttribute(index);
             else
                 PlacePawnOnNode(index);
-            var act = new PlacePawnAction(index, true);
-            ExecuteAction(act);
         }
         ///<summary>
         /// Places one of CurrentPlayers free meeples on CurrentTile's attribute specified by `index`
