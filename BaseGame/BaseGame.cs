@@ -104,7 +104,7 @@ namespace Carcassonne
             }
             return points;
         }
-        void UpdatePoints()
+        public void UpdatePoints()
         {
             foreach (var it in Players)
                 it.PotentialScore = 0;
