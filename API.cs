@@ -35,6 +35,14 @@ namespace Carcassonne
         public List<Player> Players { get => _players.ToList(); }
         ///<summary>The list of Actions that resulted in the current state of the GameEngine.</summary>
         public List<GameEngine.Action> History { get => _history.ToList(); }
+        ///<summary>The last recorded action, typically corresponding to the last move.</summary>
+        public GameEngine.Action LastAction => _history.Last();
+        ///<summary>The first recorded action, typically the one that set the initial state of the GameEngine.</summary>
+        public GameEngine.Action InitialAction => _history.First();
+        ///<summary>If true, use ActionMutex for thread safety.</summary>
+        public bool MultithreadSafe => _lockOnAction;
+        ///<summary>Mutex, only used if ActionMutex == true .</summary>
+        public object ActionMutex => _actionMutex;
         ///<summary>
         /// Places CurrentTile.
         /// Following this, one of the following things will happen:
@@ -191,6 +199,22 @@ namespace Carcassonne
         {
             return player.Pawns.Count(p => p is Meeple && p.IsInPlay);
         }
-
+        ///<summary>Returns a deep clone of the engine.</summary>
+        public GameEngine Clone()
+        {
+            lock(MultithreadSafe ? ActionMutex : null)
+            {
+                return CreateFromHistory(_dataSource, this.History);
+            }
+        }
+        ///<summary>Returns a deep clone of the engine, before the latest action.</summary>
+        public GameEngine StepBack(int steps = 1)
+        {
+            lock(MultithreadSafe ? ActionMutex : null)
+            {
+                Assert(steps < this.History.Count);
+                return CreateFromHistory(_dataSource, this.History.GetRange(0, this.History.Count - steps));
+            }
+        }
     }
 }

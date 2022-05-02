@@ -49,26 +49,29 @@ namespace Carcassonne
         protected delegate void ActionDelegate(Action act);
         public void ExecuteAction(Action action)
         {
-            Assert(actionmethods.Length > 0);
-
-            if (!action.IsFilled)
-                throw new Exception("Attempting to execute an incomplete action!");
-
-            bool found = false;
-            foreach (var it in actionmethods)
+            lock(MultithreadSafe ? ActionMutex : new object())
             {
-                if (((ActionExec)it.GetCustomAttribute(typeof(ActionExec))).type == action.GetType())
+                Assert(actionmethods.Length > 0);
+
+                if (!action.IsFilled)
+                    throw new Exception("Attempting to execute an incomplete action!");
+
+                bool found = false;
+                foreach (var it in actionmethods)
                 {
-                    found = true;
+                    if (((ActionExec)it.GetCustomAttribute(typeof(ActionExec))).type == action.GetType())
+                    {
+                        found = true;
 
-                    ActionDelegate d = (ActionDelegate)Delegate.CreateDelegate(typeof(ActionDelegate), this, it, true);
+                        ActionDelegate d = (ActionDelegate)Delegate.CreateDelegate(typeof(ActionDelegate), this, it, true);
 
-                    d(action);
+                        d(action);
+                    }
                 }
+                if (!found)
+                    throw new Exception("Unsupported action!");
+                _history.Add(action);
             }
-            if (!found)
-                throw new Exception("Unsupported action!");
-            _history.Add(action);
         }
         static Type[] GetAllActionTypes()
         {

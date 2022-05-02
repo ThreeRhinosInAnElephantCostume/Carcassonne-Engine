@@ -45,6 +45,8 @@ namespace Carcassonne
         private int _nextUniqueID = 0;
         protected IExternalDataSource _dataSource;
         protected ITileset _tileset;
+        protected object _actionMutex = new object();
+        protected bool _lockOnAction = true;
         ///<summary>
         ///    Returns an ID unique to the current instance of the engine, obtained by incrementing a counter.
         ///</summary>
@@ -85,17 +87,6 @@ namespace Carcassonne
             if (nextturn)
                 Turn++;
             return CurrentPlayer;
-        }
-        ///<summary>Returns a deep clone of the engine.</summary>
-        public GameEngine Clone()
-        {
-            return CreateFromHistory(_dataSource, this.History);
-        }
-        ///<summary>Returns a deep clone of the engine, before the latest action.</summary>
-        public GameEngine StepBack(int steps = 1)
-        {
-            Assert(steps < this.History.Count);
-            return CreateFromHistory(_dataSource, this.History.GetRange(0, this.History.Count - steps));
         }
 
         protected GameEngine(IExternalDataSource source)
