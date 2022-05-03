@@ -107,7 +107,7 @@ namespace Carcassonne
         void UpdatePoints()
         {
             foreach (var it in Players)
-                it.PotentialScore = 0;
+                it.ResetPotentialScore();
             foreach (var g in map.Graphs)
             {
                 if (g.Owners.Count == 0)
@@ -120,11 +120,11 @@ namespace Carcassonne
                     Player p = (Player)owner;
                     if (complete)
                     {
-                        p.Score += score;
+                        p.AddScore(score, g);
                     }
                     else
                     {
-                        p.PotentialScore += score;
+                        p.AddPotentialScore(score, g);
                     }
                 }
                 if (complete)
@@ -142,11 +142,11 @@ namespace Carcassonne
                 {
                     _activeMonasteries.Remove(it);
                     m.Remove();
-                    p.Score += n * MONASTERY_COMPLETE_POINTS;
+                    p.AddScore(n * MONASTERY_COMPLETE_POINTS, it);
                 }
                 else
                 {
-                    p.PotentialScore += n * MONASTERY_INCOMPLETE_POINTS;
+                    p.AddPotentialScore(n * MONASTERY_INCOMPLETE_POINTS, it);
                 }
             }
         }

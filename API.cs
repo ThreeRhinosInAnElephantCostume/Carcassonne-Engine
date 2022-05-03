@@ -216,5 +216,13 @@ namespace Carcassonne
                 return CreateFromHistory(_dataSource, this.History.GetRange(0, this.History.Count - steps));
             }
         }
+        ///<summary>
+        /// Gathers statistics about the game. This is a rather costly process. 
+        /// recordActions specifies whether a copy of the history should be included in the final statistics
+        ///</summary>
+        public Statistics GatherStatistics(bool recordActions)
+        {
+            return new Statistics(this, recordActions);
+        }
     }
 }

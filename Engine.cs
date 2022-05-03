@@ -38,6 +38,7 @@ namespace Carcassonne
         }
         protected TileManager _tileManager { get; set; }
         protected RNG _rng { get; set; }
+        protected ulong _seed { get; set; }
         List<Action> _history = new List<Action>();
         protected List<Player> _players = new List<Player>();
         public Map map { get; protected set; }

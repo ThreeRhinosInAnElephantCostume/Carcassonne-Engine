@@ -190,7 +190,8 @@ namespace Carcassonne
         void StartBaseGameExec(Action _act)
         {
             var act = (StartBaseGameAction)_act;
-
+            
+            _seed = act.seed;
             _rng = new RNG(act.seed);
 
             _tileset = _dataSource.GetTileset(act.tileset);
