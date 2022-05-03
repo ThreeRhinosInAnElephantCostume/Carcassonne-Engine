@@ -36,10 +36,10 @@ namespace Carcassonne
                     public int FromFarms {get; set;}
                     public int FromRoads {get; set;}
                     public int FromCities {get; set;}
-                    public int FromMonastries {get; set;}
+                    public int FromMonasteries {get; set;}
                     public int PotentialFromRoads {get; set;}
                     public int PotentialFromCities {get; set;}
-                    public int PotentialFromMonastries {get; set;}
+                    public int PotentialFromMonasteries {get; set;}
                 }
                 public struct PlayerStats
                 {
@@ -47,6 +47,7 @@ namespace Carcassonne
                     public PointsBreakdown points;
                     public int AvailableMeeples {get; set;}
                     public int PlacedMeeples {get; set;}
+                    public int TotalMeeples {get; set;}
                     public int Knights {get; set;}
                     public int Highwaymen {get; set;}
                     public int Monks {get; set;}
@@ -61,7 +62,7 @@ namespace Carcassonne
                     public int InvolvedProjects {get; set;}
                     public int ContestedProjects {get; set;}
                     public int FinishedRoads {get; set;}
-                    public int FinishedMonastries {get; set;}
+                    public int FinishedMonasteries {get; set;}
                     public int FinishedCities {get; set;}
                     public int Farms {get; set;}
                     
@@ -73,10 +74,10 @@ namespace Carcassonne
                 public int OpenProjects {get; set;}
                 public int FinishedProjects {get; set;}
                 public int ContestedProjects {get; set;}
-                public int OpenMonastries {get; set;}
+                public int OpenMonasteries {get; set;}
                 public int OpenRoads {get; set;}
                 public int OpenCities {get; set;}
-                public int FinishedMonastries {get; set;}
+                public int FinishedMonasteries {get; set;}
                 public int FinishedRoads {get; set;}
                 public int FinishedCities {get; set;}
                 public int OrphanedProjects {get; set;}
@@ -98,14 +99,24 @@ namespace Carcassonne
             public readonly bool Ended;
             public readonly long[] Winners; // empty if the game has not ended
             public readonly TurnStatistics[] TurnsData;
-            public readonly Action[] actions;
-            public TurnStatistics FinalStats => TurnsData.Last();
+            public readonly Action[] Actions;
+
+            public readonly double AverageMeeplesInPlayPerPlayerPerTurn;
+            public readonly double AveragePointsPerPlayerPerTurn;
+            public readonly double AverageFinishedProjectsPerPlayerPerTurn;
+
+            public readonly double AverageMeeplesInPlayPerTurn;
+            public readonly double AveragePointsPerTurn;
+            public readonly double AverageOpenProjectsPerTurn;
+            public readonly double AverageFinishedProjectsPerTurn;
+
+            public TurnStatistics FinalTurn => TurnsData.Last();
             public Statistics(GameEngine eng, bool recordActions)
             {
                 eng = eng.Clone();
                 Assert(eng.History.Count > 0);
                 if(recordActions)
-                    actions = eng.History.ToArray();
+                    Actions = eng.History.ToArray();
                 
                 Seed = eng._seed;
                 Turns = eng.Turn;
@@ -172,9 +183,9 @@ namespace Carcassonne
 
                             if(attr is TileMonasteryAttribute)
                             {
-                                ts.PlayerData[i].FinishedMonastries++;
-                                ts.FinishedMonastries++;
-                                ts.PlayerData[i].points.FromMonastries += score;   
+                                ts.PlayerData[i].FinishedMonasteries++;
+                                ts.FinishedMonasteries++;
+                                ts.PlayerData[i].points.FromMonasteries += score;   
                             }
                             else
                                 throw new Exception($"Unsupported TileAttribute {attr}");
@@ -206,7 +217,7 @@ namespace Carcassonne
 
                             if(attr is TileMonasteryAttribute)
                             {
-                                ts.PlayerData[i].points.PotentialFromMonastries += score;   
+                                ts.PlayerData[i].points.PotentialFromMonasteries += score;   
                             }
                             else
                                 throw new Exception($"Unsupported TileAttribute {attr}");
@@ -226,7 +237,7 @@ namespace Carcassonne
                         ref var pd = ref ts.PlayerData[ii];
                         pd.points.FromFarms = 0;
                         pd.points.PotentialFromCities = 0;
-                        pd.points.PotentialFromMonastries = 0;
+                        pd.points.PotentialFromMonasteries = 0;
                         pd.points.PotentialFromRoads = 0;
                     }
                     ts.Turn = i;
@@ -238,6 +249,7 @@ namespace Carcassonne
                             ref var pd = ref ts.PlayerData[ii];
                             pd.ID = player.ID;
                             pd.PlacedMeeples = player.PlacedMeeples;
+                            pd.TotalMeeples = player.TotalMeeples;
                             pd.AvailableMeeples = player.AvailableMeeples;
                             pd.Knights = player.Knights;
                             pd.Farmers = player.Farmers;
@@ -257,7 +269,7 @@ namespace Carcassonne
                         ts.WinningPlayers = state.GetWinners().ConvertAll<long>(it => it.ID).ToArray();
                         ts.ContestedProjects = 0;
                         ts.OpenProjects = 0;
-                        ts.OpenMonastries = 0;
+                        ts.OpenMonasteries = 0;
                         ts.OpenRoads = 0;
                         ts.OpenCities = 0;
                         ts.Farms = 0;
@@ -282,7 +294,7 @@ namespace Carcassonne
                             else
                                 ts.OrphanedProjects++;
                         }
-                        ts.OpenMonastries = state._activeMonasteries.Count;
+                        ts.OpenMonasteries = state._activeMonasteries.Count;
                         state.ExecuteAction(hist.First());
                         hist.RemoveAt(0);
                     }
@@ -292,14 +304,15 @@ namespace Carcassonne
                     ts.Farmers = state.Players.Sum(it => it.Farmers);
                     ts.Highwaymen = state.Players.Sum(it => it.Highwaymen);
                     ts.Monks = state.Players.Sum(it => it.Monks);
+                    ts.MeeplesInPlay = state.Players.Sum(it => it.PlacedMeeples);
                     foreach(var p in ts.PlayerData)
                     {
                         ts.CombinedPoints.FromFarms += p.points.FromFarms;
                         ts.CombinedPoints.FromCities += p.points.FromCities;
-                        ts.CombinedPoints.FromMonastries += p.points.FromMonastries;
+                        ts.CombinedPoints.FromMonasteries += p.points.FromMonasteries;
                         ts.CombinedPoints.FromRoads += p.points.FromRoads;
                         ts.CombinedPoints.PotentialFromCities += p.points.PotentialFromCities;
-                        ts.CombinedPoints.PotentialFromMonastries += p.points.PotentialFromMonastries;
+                        ts.CombinedPoints.PotentialFromMonasteries += p.points.PotentialFromMonasteries;
                         ts.CombinedPoints.PotentialFromRoads += p.points.PotentialFromRoads;
                         ts.CombinedPoints.Real += p.points.Real;
                         ts.CombinedPoints.Potential += p.points.Potential;
@@ -327,6 +340,7 @@ namespace Carcassonne
                         pd.TotalPlacedHighwaymen += Max(pd.Highwaymen - ppd.Highwaymen, 0);
                         pd.TotalPlacedKnights += Max(pd.Knights - ppd.Knights, 0);
                         pd.TotalPlacedMonks += Max(pd.Monks - ppd.Monks, 0);
+                        pd.TotalPlacedMeeples = pd.TotalPlacedFarmers + pd.TotalPlacedHighwaymen + pd.TotalPlacedKnights + pd.TotalPlacedMonks;
                     }
                 }
                 if(FinalState == State.GAME_OVER)
@@ -336,13 +350,27 @@ namespace Carcassonne
                     {
                         ref var pd = ref last.PlayerData[i];
                         pd.points.FromCities += pd.points.PotentialFromCities;
-                        pd.points.FromMonastries += pd.points.PotentialFromMonastries;
+                        pd.points.FromMonasteries += pd.points.PotentialFromMonasteries;
                         pd.points.FromRoads += pd.points.PotentialFromRoads;
                     }
                     last.CombinedPoints.FromCities += last.CombinedPoints.PotentialFromCities;
-                    last.CombinedPoints.FromMonastries += last.CombinedPoints.PotentialFromMonastries;
+                    last.CombinedPoints.FromMonasteries += last.CombinedPoints.PotentialFromMonasteries;
                     last.CombinedPoints.FromRoads += last.CombinedPoints.PotentialFromRoads;
                 }
+
+                foreach(var it in TurnsData)
+                {
+                    AverageMeeplesInPlayPerTurn += (double)it.MeeplesInPlay/(double)Turns;
+                    AveragePointsPerTurn += ((double)it.CombinedPoints.Total)/(double)Turns;
+                    AverageOpenProjectsPerTurn += (double)it.OpenProjects/(double)Turns;
+                    AverageFinishedProjectsPerTurn += (double)it.FinishedProjects/(double)Turns;
+                    AverageMeeplesInPlayPerPlayerPerTurn += (double)it.MeeplesInPlay/(double)Players/(double)Turns;
+                }
+
+                AverageFinishedProjectsPerTurn = (double)FinalTurn.FinishedProjects/(double)Turns;
+
+                AveragePointsPerPlayerPerTurn = (double)FinalTurn.CombinedPoints.Total/(double)Players/(double)Turns;
+                AverageFinishedProjectsPerPlayerPerTurn = (double)FinalTurn.FinishedProjects/(double)Players/(double)Turns;
             }
         }
     }
