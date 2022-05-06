@@ -129,7 +129,11 @@ namespace Carcassonne
                 }
                 if (complete)
                 {
-                    g.Owners.FindAll(o => (o is Meeple)).ForEach(m => ((Meeple)m).Remove());
+                    g.FinishedByPlayer = true;
+                    var meeps = g.Owners.FindAll(o => (o is Meeple));
+                    if(meeps.Count > 0)
+                        g.FinishedByPlayer = true;
+                    meeps.ForEach(m => ((Meeple)m).Remove());
                 }
             }
             foreach (var it in _activeMonasteries.FindAll(o => (o.Owner is Meeple)))
@@ -142,6 +146,7 @@ namespace Carcassonne
                 {
                     _activeMonasteries.Remove(it);
                     m.Remove();
+                    it.FinishedByPlayer = true;
                     p.AddScore(n * MONASTERY_COMPLETE_POINTS, it);
                 }
                 else
@@ -203,8 +208,8 @@ namespace Carcassonne
         {
             if (GetFreeMeepleCount(player) == 0)
                 return new List<object>();
-            var nodes = tile.Nodes.FindAll((InternalNode n) => GetGraphOwners(n.Graph).Count == 0).ToList<object>();
-            var mons = tile.Attributes.FindAll(it => it is TileMonasteryAttribute && ((TileMonasteryAttribute)it).Owner == null).ToList<object>();
+            var nodes = tile.Nodes.FindAll((InternalNode n) => GetGraphOwners(n.Graph).Count == 0 && !n.Graph.FinishedByPlayer).ToList<object>();
+            var mons = tile.Attributes.FindAll(it => it is TileMonasteryAttribute tma && tma.Owner == null && !tma.FinishedByPlayer).ToList<object>();
             return nodes.Concat(mons).ToList();
         }
         public class TileMonasteryAttribute : Tile.TileAttribute

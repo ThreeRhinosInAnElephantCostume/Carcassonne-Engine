@@ -45,6 +45,11 @@ namespace Carcassonne
         public object Mark { get; set; } // potentially useful for certain search algorithms 
         public List<InternalNodeAttribute> Attributes { get; protected set; } = new List<InternalNodeAttribute>();
 
+        public override int GetIndex()
+        {
+            return Index;
+        }
+
         // This is here for the sake of potential expansions 
         InternalNodeAttribute GenerateAttribute(NodeAttributeType tp)
         {

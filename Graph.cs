@@ -48,6 +48,7 @@ namespace Carcassonne
             public uint ID { get; protected set; }
             public List<object> Owners = new List<object>();
             public bool Dirty { get; protected set; } = true;
+            public bool FinishedByPlayer {get; set;} = false;
             bool _isclosed = true;
             public bool IsClosed
             {

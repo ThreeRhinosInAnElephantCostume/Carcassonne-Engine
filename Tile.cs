@@ -43,6 +43,13 @@ namespace Carcassonne
             public Tile tile { get; protected set; }
             public TileAttributeType Type { get; protected set; }
 
+            public bool FinishedByPlayer {get; set;} = false;
+
+            public override int GetIndex()
+            {
+                return tile.Attributes.IndexOf(this);
+            }
+
             public TileAttribute(Tile tile, TileAttributeType tp)
             {
                 this.tile = tile;

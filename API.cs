@@ -137,13 +137,8 @@ namespace Carcassonne
         ///<summary>Returns a combined list of valid values for PlacePawnOnNode and PlacePawnOnAttribute.</summary>
         public List<(bool isattribute, int indx)> AllPossibleMeeplePlacements()
         {
-            var attributes = PossibleMeepleAttributePlacements();
-            var nodes = PossibleMeepleNodePlacements();
-            List<(bool isattribute, int indx)> meeple_placements = new List<(bool isattribute, int indx)>();
-            attributes.ForEach(it => meeple_placements.Add((true, it)));
-            nodes.ForEach(it => meeple_placements.Add((false, it)));
-
-            return meeple_placements;
+            return GetPossibleMeeplePlacements(CurrentPlayer, _lastTile)
+                .ConvertAll(o => ((o is Tile.TileAttribute, (o as OccupierContainer).GetIndex())));
         }
 
         ///<summary>Returns a list of valid values for PlacePawnOnNode.</summary>

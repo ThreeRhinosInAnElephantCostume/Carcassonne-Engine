@@ -24,9 +24,10 @@ using static Utils;
 namespace Carcassonne
 {
 
-    public class OccupierContainer
+    public abstract class OccupierContainer
     {
         public List<Occupier> Occupiers {get; protected set;} = new List<Occupier>();
+        public abstract int GetIndex();
         public void AddOccupier(Occupier occ)
         {
             Occupiers.Add(occ);
@@ -39,15 +40,21 @@ namespace Carcassonne
     public abstract class Occupier : Pawn
     {
         public abstract int Weight { get; }
+        public System.Action OnPlace = null;
+        public System.Action OnRemove = null;
         public virtual void Place(Tile tile, OccupierContainer container)
         {
             Assert(!container.Occupiers.Contains(this));
             container.AddOccupier(this);
+            if(OnPlace != null)
+                OnPlace();
         }
         public virtual void Remove(OccupierContainer container)
         {
             Assert(container.Occupiers.Contains(this));
             container.RemoveOccupier(this);
+            if(OnRemove != null)
+                OnRemove();
         }
 
         public Occupier(Player player)

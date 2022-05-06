@@ -225,6 +225,21 @@ namespace Carcassonne
                         else
                             throw new Exception($"Unsupported source {source}");
                     };
+                    foreach(Meeple meep in player.Pawns.FindAll(it => it is Meeple))
+                    {
+                        meep.OnPlace += () => 
+                        {
+                            ts.PlayerData[i].TotalPlacedMeeples++;
+                            _ = (meep.CurrentRole) switch
+                            {
+                                (Meeple.Role.KNIGHT) => ts.PlayerData[i].TotalPlacedKnights++,
+                                (Meeple.Role.HIGHWAYMAN) => ts.PlayerData[i].TotalPlacedHighwaymen++,
+                                (Meeple.Role.MONK) => ts.PlayerData[i].TotalPlacedMonks++,
+                                (Meeple.Role.FARMER) => ts.PlayerData[i].TotalPlacedFarmers++,
+                                _ => throw new Exception()
+                            };  
+                        };
+                    }
                     _i++;
                 }
                 var hist = eng.History.GetRange(1, eng.History.Count-1);
@@ -232,14 +247,6 @@ namespace Carcassonne
                 {
                     ts = ts.Clone();
                     ts.PlayerData = ts.PlayerData.ToArray();
-                    for(int ii = 0; ii < state.Players.Count; ii++)
-                    {
-                        ref var pd = ref ts.PlayerData[ii];
-                        pd.points.FromFarms = 0;
-                        pd.points.PotentialFromCities = 0;
-                        pd.points.PotentialFromMonasteries = 0;
-                        pd.points.PotentialFromRoads = 0;
-                    }
                     ts.Turn = i;
                     while(state.Turn == i && hist.Count > 0)
                     {
@@ -295,6 +302,14 @@ namespace Carcassonne
                                 ts.OrphanedProjects++;
                         }
                         ts.OpenMonasteries = state._activeMonasteries.Count;
+                        for(int ii = 0; ii < state.Players.Count; ii++)
+                        {
+                            ref var pd = ref ts.PlayerData[ii];
+                            pd.points.FromFarms = 0;
+                            pd.points.PotentialFromCities = 0;
+                            pd.points.PotentialFromMonasteries = 0;
+                            pd.points.PotentialFromRoads = 0;
+                        }
                         state.ExecuteAction(hist.First());
                         hist.RemoveAt(0);
                     }
@@ -319,29 +334,6 @@ namespace Carcassonne
                         ts.CombinedPoints.Total += p.points.Total;
                     }
                     TurnsData[i] = ts;
-                }
-                for(int i = 0; i < TurnsData[0].PlayerData.Length; i++)
-                {
-                    ref var pd = ref TurnsData[0].PlayerData[i];
-                    pd.TotalPlacedFarmers = pd.Farmers;
-                    pd.TotalPlacedHighwaymen = pd.Highwaymen;
-                    pd.TotalPlacedKnights = pd.Knights;
-                    pd.TotalPlacedMonks = pd.Monks;
-                    pd.TotalPlacedMeeples = pd.PlacedMeeples;
-                }
-                for(int i = 1; i < TurnsData.Length; i++)
-                {
-                    var prev = TurnsData[i-1];
-                    for(int ii = 0; ii < TurnsData[i].PlayerData.Length; ii++)
-                    {
-                        var ppd = prev.PlayerData[ii];
-                        ref var pd = ref TurnsData[i].PlayerData[ii];
-                        pd.TotalPlacedFarmers += pd.Farmers;
-                        pd.TotalPlacedHighwaymen += Max(pd.Highwaymen - ppd.Highwaymen, 0);
-                        pd.TotalPlacedKnights += Max(pd.Knights - ppd.Knights, 0);
-                        pd.TotalPlacedMonks += Max(pd.Monks - ppd.Monks, 0);
-                        pd.TotalPlacedMeeples = pd.TotalPlacedFarmers + pd.TotalPlacedHighwaymen + pd.TotalPlacedKnights + pd.TotalPlacedMonks;
-                    }
                 }
                 if(FinalState == State.GAME_OVER)
                 {
