@@ -149,7 +149,7 @@ namespace Carcassonne
                         {
                             // this avoids duplicating contested projects
                             bool islastplayer = g.Owners.Count == 1 || 
-                                player == state.Players.FindLast(it => g.Owners.Contains(it));
+                                player == state.Players.FindLast(it => g.Owners.Any(oc => oc.Owner == it));
                             if(islastplayer)
                             {
                                 ts.FinishedProjects++;

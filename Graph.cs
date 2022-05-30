@@ -46,7 +46,7 @@ namespace Carcassonne
             }
             public NodeType Type { get; protected set; }
             public uint ID { get; protected set; }
-            public List<object> Owners = new List<object>();
+            public List<Occupier> Owners = new List<Occupier>();
             public bool Dirty { get; protected set; } = true;
             public bool FinishedByPlayer {get; set;} = false;
             bool _isclosed = true;
@@ -231,7 +231,7 @@ namespace Carcassonne
             ngraphs.ForEach(it => it.Check());
             return ngraphs;
         }
-        void AddOwner(Graph graph, object o)
+        void AddOwner(Graph graph, Occupier o)
         {
             Assert(graph != null);
             Assert(o != null);
@@ -239,7 +239,7 @@ namespace Carcassonne
             if (!graph.Owners.Contains(o))
                 graph.Owners.Add(o);
         }
-        void AddOwners(Graph graph, List<object> o)
+        void AddOwners(Graph graph, List<Occupier> o)
         {
             Assert(graph != null);
             Assert(o != null);
@@ -249,7 +249,7 @@ namespace Carcassonne
                 AddOwner(graph, it);
             }
         }
-        void RemoveOwner(Graph graph, object o)
+        void RemoveOwner(Graph graph, Occupier o)
         {
             Assert(graph != null);
             Assert(graph.Owners.Contains(o));
