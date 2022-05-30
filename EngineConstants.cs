@@ -26,6 +26,7 @@ namespace Carcassonne
     {
         public const int N_SIDES = 4;
         public const int N_CONNECTORS = 3;
+        public const int N_TOTAL_CONNECTORS = N_CONNECTORS*N_SIDES;
         public const int MIN_PLAYERS = 2;
         public const int MAX_PLAYERS = int.MaxValue;
 
